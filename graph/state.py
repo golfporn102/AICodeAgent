@@ -48,3 +48,4 @@ class AgentState(TypedDict, total=False):
     api_test_results: list[dict[str, Any]]
     api_test_passed: bool
     api_test_output: str
+    api_test_results_file: str

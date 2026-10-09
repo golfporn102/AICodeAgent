@@ -18,7 +18,7 @@ def start_application(state):
         raise FileNotFoundError(f"ไม่พบ Maven Wrapper: {mvnw}")
 
     # สร้าง log และเขียนข้อความทันที
-    with open(log_file, "a", encoding="utf-8") as f:
+    with open(log_file, "w", encoding="utf-8") as f:
         f.write("\n===== Starting Spring Boot =====\n")
         f.flush()
 

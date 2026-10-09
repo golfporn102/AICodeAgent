@@ -6,7 +6,11 @@ def main():
     project_dir = PROJECT_DIR
 
     mode = input(
-        "What do you want to mode [CODE, RUN_TEST]? "
+        "What do you want to mode [CODE, RUN_TEST, API_PLAN, API_TEST]? "
+    )
+
+    mode_test = input(
+        "What do you want to mode test [ALL, SKIP_PLAN]? "
     )
 
     user_request = input(
@@ -17,6 +21,7 @@ def main():
 
     result = app.invoke({
         "mode": mode,
+        "mode_test": mode_test,
         "user_request": user_request,
         "project_dir": project_dir
 

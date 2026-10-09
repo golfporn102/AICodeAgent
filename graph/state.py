@@ -1,9 +1,12 @@
-from typing import TypedDict
+from typing import TypedDict, Any
 
 class AgentState(TypedDict, total=False):
 
     # Mode
     mode: str
+
+    #Mode test
+    mode_test: str
 
     # User request
     user_request: str
@@ -32,3 +35,16 @@ class AgentState(TypedDict, total=False):
     retry_count: int
     fix_action: str
     fix_reason: str
+
+    api_endpoints: list[dict[str, Any]]
+    postman_file: str
+    test_plan: list[dict[str, Any]]
+    test_plan_file: str
+
+    app_pid: int
+    app_log_file: str
+    app_started: bool
+
+    api_test_results: list[dict[str, Any]]
+    api_test_passed: bool
+    api_test_output: str

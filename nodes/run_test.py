@@ -51,6 +51,8 @@ def run_test(state):
 def route_test_result(state):
     print("route_test_result")
     if state["test_passed"]:
+        if state["mode_test"] == "SKIP_PLAN":
+            return "SKIP_PLAN"
         return "PASS"
     
     if state["retry_count"] >= MAX_TEST_RETRY:

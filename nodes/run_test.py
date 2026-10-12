@@ -3,6 +3,7 @@ import subprocess
 from google import genai
 from config import (MAX_TEST_RETRY,GEMINI_API_KEY,GEMINI_MODEL)
 import os
+import shutil
 
 client = genai.Client(
     api_key=GEMINI_API_KEY
@@ -10,38 +11,78 @@ client = genai.Client(
 
 def run_test(state):
     print("run_test")
-    project_dir = state["project_dir"]
 
+    project_dir = os.path.abspath(state["project_dir"])
     retry_count = state.get("retry_count", 0)
+
     mvnw = os.path.join(project_dir, "mvnw.cmd")
+    mvn = shutil.which("mvn")
 
     print("PROJECT DIR:", project_dir)
     print("MAVEN WRAPPER:", mvnw)
-    print("EXISTS:", os.path.exists(mvnw))
+    print("WRAPPER EXISTS:", os.path.isfile(mvnw))
+    print("MAVEN PATH:", mvn)
 
-    if not os.path.exists(mvnw):
+    # 1. เลือก Maven command
+    if os.path.isfile(mvnw):
+        command = ["cmd.exe", "/c", mvnw, "test"]
+        print("Using Maven Wrapper")
+    elif mvn:
+        command = [mvn, "test"]
+        print("Using installed Maven")
+    else:
         raise RuntimeError(
-            f"mvnw.cmd not found: {mvnw}"
+            "Cannot run Maven tests.\n"
+            f"Project directory: {project_dir}\n"
+            f"Maven Wrapper not found: {mvnw}\n"
+            "Maven is also not installed or not in PATH.\n"
+            "Install Maven and configure PATH, or create mvnw.cmd."
         )
 
-    result = subprocess.run(
-        [mvnw, "test"],
-        cwd=project_dir,
-        capture_output=True,
-        text=True
-    )
+    # 2. Run tests
+    try:
+        result = subprocess.run(
+            command,
+            cwd=project_dir,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=600
+        )
 
-    test_output = result.stdout + "\n" + result.stderr
+        test_output = (
+            result.stdout or ""
+        ) + "\n" + (
+            result.stderr or ""
+        )
 
-    if result.returncode == 0:
-        test_passed = True
-    else:
+        test_passed = result.returncode == 0
+
+        if not test_passed:
+            retry_count += 1
+
+    except subprocess.TimeoutExpired as exc:
+        stdout = exc.stdout or ""
+        stderr = exc.stderr or ""
+
+        if isinstance(stdout, bytes):
+            stdout = stdout.decode("utf-8", errors="replace")
+        if isinstance(stderr, bytes):
+            stderr = stderr.decode("utf-8", errors="replace")
+
+        test_output = (
+            f"Maven test timed out after 600 seconds.\n"
+            f"{stdout}\n{stderr}"
+        )
+
         test_passed = False
         retry_count += 1
 
     print(f"Test output:\n{test_output}")
-    print(f"test_passed:\n{test_passed}")
-    print(f"Retry_count:\n{retry_count}")
+    print(f"test_passed: {test_passed}")
+    print(f"retry_count: {retry_count}")
+
     return {
         "test_output": test_output,
         "test_passed": test_passed,

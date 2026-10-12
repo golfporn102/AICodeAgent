@@ -8,8 +8,10 @@ class AgentState(TypedDict, total=False):
     #Mode test
     mode_test: str
 
-    # User request
+    # User requests
     user_request: str
+
+    request_file: str
 
     # Java project
     project_dir: str
@@ -44,6 +46,12 @@ class AgentState(TypedDict, total=False):
     app_pid: int
     app_log_file: str
     app_started: bool
+
+    startup_error: str
+    startup_retry_count: int
+    startup_files_to_fix: list[str]
+    startup_passed: bool
+    retry_after_startup: str
 
     api_test_results: list[dict[str, Any]]
     api_test_passed: bool
